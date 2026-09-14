@@ -14,7 +14,7 @@
             @foreach ($subjects as $subject)
             <div class="bg-white rounded-xl overflow-hidden shadow-lg h-full flex flex-col">
                 <a href="{{ route('showModule', $subject->id) }}">
-                    <img class="w-full h-40 object-cover" src="{{ asset('storage/' . $subject->picture) }}" alt="Illustration for {{ $subject->name }}">
+                    <img class="w-full h-40 object-cover" src="{{ Storage::disk('public')->url($subject->picture) }}" alt="Illustration for {{ $subject->name }}">
                 </a>
                 
                 <div class="p-4 flex flex-col flex-grow">

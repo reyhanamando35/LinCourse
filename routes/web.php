@@ -8,6 +8,7 @@ use App\Http\Controllers\StudentAttemptController;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\AuthMiddleware;
 use App\Http\Middleware\StudentMiddleware;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -32,6 +33,12 @@ Route::middleware('guest')->group(function () {
 
 });
 Route::get('/', [DashboardController::class, 'dashboard'])->name('dashboard');
+
+// Dipanggil Vercel Cron tiap hari: query ringan supaya project Supabase gratis tidak di-pause karena tidak aktif
+Route::get('/up-db', function () {
+    DB::select('select 1');
+    return response('ok');
+})->middleware('throttle:10,1');
 
 Route::middleware([AuthMiddleware::class])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');

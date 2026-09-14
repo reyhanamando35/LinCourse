@@ -30,7 +30,19 @@ return [
 
     'disks' => [
 
-        'local' => [
+        // UPLOADS_DRIVER=s3 (dipakai di Vercel, filesystem-nya tidak permanen): disk 'local' & 'public'
+        // pindah ke dua bucket Supabase Storage. Tanpa env itu, keduanya tetap folder storage/ biasa.
+        'local' => env('UPLOADS_DRIVER') === 's3' ? [
+            'driver' => 's3',
+            'key' => env('SUPABASE_S3_KEY'),
+            'secret' => env('SUPABASE_S3_SECRET'),
+            'region' => env('SUPABASE_S3_REGION'),
+            'endpoint' => env('SUPABASE_S3_ENDPOINT'),
+            'bucket' => env('SUPABASE_PRIVATE_BUCKET', 'lincourse-private'),
+            'use_path_style_endpoint' => true,
+            'throw' => false,
+            'report' => false,
+        ] : [
             'driver' => 'local',
             'root' => storage_path('app/private'),
             'serve' => true,
@@ -38,10 +50,23 @@ return [
             'report' => false,
         ],
 
-        'public' => [
+        'public' => env('UPLOADS_DRIVER') === 's3' ? [
+            'driver' => 's3',
+            'key' => env('SUPABASE_S3_KEY'),
+            'secret' => env('SUPABASE_S3_SECRET'),
+            'region' => env('SUPABASE_S3_REGION'),
+            'endpoint' => env('SUPABASE_S3_ENDPOINT'),
+            'bucket' => env('SUPABASE_PUBLIC_BUCKET', 'lincourse-public'),
+            // Bucket di-set Public di dashboard Supabase; S3 Supabase tidak mendukung ACL, jadi tanpa 'visibility'
+            'url' => env('SUPABASE_PUBLIC_URL'),
+            'use_path_style_endpoint' => true,
+            'throw' => false,
+            'report' => false,
+        ] : [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => env('APP_URL').'/storage',
+            // Relatif, supaya URL gambar ikut host yang sedang dipakai (localhost, 127.0.0.1, dll.)
+            'url' => '/storage',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,

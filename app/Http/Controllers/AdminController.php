@@ -195,21 +195,17 @@ class AdminController extends Controller
 
     public function showIncome()
     {
-        $incomeData = Payment::select(
-                DB::raw("DATE_FORMAT(payment_date, '%Y-%m') as month"),
-                DB::raw("SUM(amount) as total")
-            )
-            ->where('status', 'verified')
+        // Dikelompokkan per bulan di PHP, bukan DATE_FORMAT, supaya jalan di MySQL maupun PostgreSQL
+        $incomeData = Payment::where('status', 'verified')
             ->where('payment_date', '>=', Carbon::now()->subMonths(12))
-            ->groupBy('month')
-            ->orderBy('month', 'asc')
-            ->get();
+            ->get(['payment_date', 'amount'])
+            ->groupBy(fn ($payment) => Carbon::parse($payment->payment_date)->format('Y-m'))
+            ->sortKeys()
+            ->map(fn ($payments) => $payments->sum('amount'));
 
-        $labels = $incomeData->map(function ($item) {
-            return Carbon::createFromFormat('Y-m', $item->month)->format('M Y');
-        });
+        $labels = $incomeData->keys()->map(fn ($month) => Carbon::createFromFormat('Y-m', $month)->format('M Y'))->values();
 
-        $data = $incomeData->pluck('total');
+        $data = $incomeData->values();
 
         return view('admin.income', compact('labels', 'data'));
     }

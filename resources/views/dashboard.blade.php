@@ -92,7 +92,7 @@
                             </div>
                             
                             <div class="mt-auto">
-                                <img class="w-full h-48 object-cover" src="{{ asset('storage/' . $subject->picture) }}" alt="Illustration for {{ $subject->name }}">
+                                <img class="w-full h-48 object-cover" src="{{ Storage::disk('public')->url($subject->picture) }}" alt="Illustration for {{ $subject->name }}">
                             </div>
                         </div>
                     </a>

@@ -18,7 +18,7 @@
                             <div class="mb-6 grid grid-cols-2 md:grid-cols-4 gap-4">
                                 @foreach($module->pictures as $picture)
                                     <div>
-                                        <img class="h-auto max-w-full rounded-lg shadow-md" src="{{ asset('storage/' . $picture) }}" alt="Gambar Modul">
+                                        <img class="h-auto max-w-full rounded-lg shadow-md" src="{{ Storage::disk('public')->url($picture) }}" alt="Gambar Modul">
                                     </div>
                                 @endforeach
                             </div>
@@ -63,7 +63,7 @@
                                             @endphp
                                             @if(in_array($fileExtension, $imageExtensions))
                                                 <div class="mb-4">
-                                                    <img src="{{ asset('storage/' . $question->content_file) }}" alt="Question Image" class="w-full max-w-lg h-auto rounded-lg border">
+                                                    <img src="{{ Storage::disk('public')->url($question->content_file) }}" alt="Question Image" class="w-full max-w-lg h-auto rounded-lg border">
                                                 </div>
                                             @endif
                                         @endif
@@ -73,7 +73,7 @@
                                         </div>
 
                                         @if($question->content_file)
-                                            <a href="{{ asset('storage/' . $question->content_file) }}" download class="inline-flex items-center bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded mb-4 text-sm">
+                                            <a href="{{ Storage::disk('public')->url($question->content_file) }}" download class="inline-flex items-center bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded mb-4 text-sm">
                                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                                                 Download
                                             </a>
@@ -89,15 +89,15 @@
                                                 @endphp
                                                 
                                                 <div class="bg-gray-100 p-4 rounded-lg border">
-                                                    <div class="mb-4 p-3 rounded-lg border-2 @if($attempt->is_correct === 1) border-green-500 bg-green-100 @elseif($attempt->is_correct === 0) border-red-500 bg-red-100 @else border-yellow-500 bg-yellow-100 @endif">
-                                                        <h5 class="font-bold text-sm @if($attempt->is_correct === 1) text-green-800 @elseif($attempt->is_correct === 0) text-red-800 @else text-yellow-800 @endif">
-                                                            @if($attempt->is_correct === 1) Status: Correct
-                                                            @elseif($attempt->is_correct === 0) Status: Incorrect
+                                                    <div class="mb-4 p-3 rounded-lg border-2 @if($attempt->is_correct === true) border-green-500 bg-green-100 @elseif($attempt->is_correct === false) border-red-500 bg-red-100 @else border-yellow-500 bg-yellow-100 @endif">
+                                                        <h5 class="font-bold text-sm @if($attempt->is_correct === true) text-green-800 @elseif($attempt->is_correct === false) text-red-800 @else text-yellow-800 @endif">
+                                                            @if($attempt->is_correct === true) Status: Correct
+                                                            @elseif($attempt->is_correct === false) Status: Incorrect
                                                             @else Status: Awaiting Grade
                                                             @endif
                                                         </h5>
                                                         @if($attempt->feedback)
-                                                        <div class="mt-2 pt-2 border-t @if($attempt->is_correct === 1) border-green-300 @elseif($attempt->is_correct === 0) border-red-300 @else border-yellow-300 @endif">
+                                                        <div class="mt-2 pt-2 border-t @if($attempt->is_correct === true) border-green-300 @elseif($attempt->is_correct === false) border-red-300 @else border-yellow-300 @endif">
                                                             <p class="text-sm font-semibold text-gray-800">Teacher's Feedback:</p>
                                                             <p class="text-sm text-gray-700 mt-1 whitespace-pre-wrap">{{ $attempt->feedback }}</p>
                                                         </div>
@@ -107,7 +107,7 @@
                                                     <p class="text-sm font-semibold text-gray-700 mb-2">You submitted this answer on {{ $attempt->updated_at->format('d M Y, H:i') }}.</p>
                                                     <textarea disabled rows="5" class="w-full p-2.5 text-sm text-gray-700 bg-gray-200 rounded-lg border border-gray-300 cursor-not-allowed">{{ $attempt->answer_text }}</textarea>
                                                     @if($attempt->answer_file)
-                                                        <div class="mt-4"><p class="block mb-2 text-sm font-medium text-gray-900">Submitted File:</p><a href="{{ asset('storage/' . $attempt->answer_file) }}" target="_blank" class="inline-flex items-center max-w-full break-all bg-blue-100 text-blue-800 text-sm font-medium me-2 px-3 py-1.5 rounded-lg border border-blue-400 hover:bg-blue-200"><svg class="w-4 h-4 me-2 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20"><path d="M15.5 11.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z"/><path d="M19.293 12.707a1 1 0 0 1 0 1.414l-4 4a1 1 0 0 1-1.414-1.414L16.586 14H5a1 1 0 0 1 0-2h11.586l-2.707-2.707a1 1 0 0 1 1.414-1.414l4 4Z"/></svg>{{ basename($attempt->answer_file) }}</a></div>
+                                                        <div class="mt-4"><p class="block mb-2 text-sm font-medium text-gray-900">Submitted File:</p><a href="{{ Storage::disk('public')->url($attempt->answer_file) }}" target="_blank" class="inline-flex items-center max-w-full break-all bg-blue-100 text-blue-800 text-sm font-medium me-2 px-3 py-1.5 rounded-lg border border-blue-400 hover:bg-blue-200"><svg class="w-4 h-4 me-2 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20"><path d="M15.5 11.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z"/><path d="M19.293 12.707a1 1 0 0 1 0 1.414l-4 4a1 1 0 0 1-1.414-1.414L16.586 14H5a1 1 0 0 1 0-2h11.586l-2.707-2.707a1 1 0 0 1 1.414-1.414l4 4Z"/></svg>{{ basename($attempt->answer_file) }}</a></div>
                                                     @else
                                                         <p class="mt-4 text-sm text-gray-500 italic">No file was submitted with this answer.</p>
                                                     @endif
@@ -122,7 +122,7 @@
                                                                 {!! nl2br(e($question->answerKey->key_text)) !!}
                                                             </div>
                                                             @if($question->answerKey->key_file)
-                                                                <a href="{{ asset('storage/' . $question->answerKey->key_file) }}" target="_blank" class="mt-4 inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm">
+                                                                <a href="{{ Storage::disk('public')->url($question->answerKey->key_file) }}" target="_blank" class="mt-4 inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm">
                                                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                                                                     View Answer Key File
                                                                 </a>
@@ -165,7 +165,7 @@
                                                         <label class="block mt-4 mb-2 text-sm font-medium">Attach Key File</label>
                                                         <input type="file" name="key_file" class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none">
                                                         @if($question->answerKey && $question->answerKey->key_file)
-                                                            <p class="mt-1 text-xs text-gray-600">Current file: <a href="{{ asset('storage/' . $question->answerKey->key_file) }}" target="_blank" class="text-blue-600 hover:underline break-all">{{ basename($question->answerKey->key_file) }}</a></p>
+                                                            <p class="mt-1 text-xs text-gray-600">Current file: <a href="{{ Storage::disk('public')->url($question->answerKey->key_file) }}" target="_blank" class="text-blue-600 hover:underline break-all">{{ basename($question->answerKey->key_file) }}</a></p>
                                                         @endif
                                                     </form>
 
@@ -192,17 +192,17 @@
                                                     <div class="space-y-6">
                                                         @foreach($allStudentAttempts->get($question->id) as $studentAttempt)
                                                             <div class="p-4 border rounded-lg 
-                                                                @if($studentAttempt->is_correct === 1) bg-green-50 border-green-300
-                                                                @elseif($studentAttempt->is_correct === 0) bg-red-50 border-red-300
+                                                                @if($studentAttempt->is_correct === true) bg-green-50 border-green-300
+                                                                @elseif($studentAttempt->is_correct === false) bg-red-50 border-red-300
                                                                 @else bg-gray-50 border-gray-300 @endif">
 
                                                                 <div class="flex justify-between items-center mb-2">
                                                                     <p class="font-bold text-gray-700">{{ $studentAttempt->studentDetail->student->user->name ?? 'Unknown Student' }}</p>
                                                                     
                                                                     {{-- Status Penilaian --}}
-                                                                    @if($studentAttempt->is_correct === 1)
+                                                                    @if($studentAttempt->is_correct === true)
                                                                         <span class="px-3 py-1 text-xs font-medium text-white bg-green-600 rounded-full">Correct</span>
-                                                                    @elseif($studentAttempt->is_correct === 0)
+                                                                    @elseif($studentAttempt->is_correct === false)
                                                                         <span class="px-3 py-1 text-xs font-medium text-white bg-red-600 rounded-full">Incorrect</span>
                                                                     @else
                                                                         <span class="px-3 py-1 text-xs font-medium text-gray-600 bg-gray-200 rounded-full">Not Graded</span>
@@ -215,7 +215,7 @@
                                                                 <div class="mb-4 p-3 bg-white rounded border border-gray-200">
                                                                     <p class="text-sm text-gray-800 whitespace-pre-wrap">{{ $studentAttempt->answer_text ?: 'No text answer provided.' }}</p>
                                                                     @if($studentAttempt->answer_file)
-                                                                        <a href="{{ asset('storage/' . $studentAttempt->answer_file) }}" target="_blank" class="mt-3 inline-block text-sm text-blue-600 hover:underline">View Submitted File</a>
+                                                                        <a href="{{ Storage::disk('public')->url($studentAttempt->answer_file) }}" target="_blank" class="mt-3 inline-block text-sm text-blue-600 hover:underline">View Submitted File</a>
                                                                     @endif
                                                                 </div>
                                                                 
@@ -230,11 +230,11 @@
                                                                         <div class="flex flex-wrap items-center gap-x-4 gap-y-3">
                                                                             <label class="text-sm font-medium text-gray-900">Mark as:</label>
                                                                             <div class="flex items-center">
-                                                                                <input @if($studentAttempt->is_correct === 1) checked @endif type="radio" id="correct_{{ $studentAttempt->id }}" name="is_correct" value="1" class="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 focus:ring-green-500">
+                                                                                <input @if($studentAttempt->is_correct === true) checked @endif type="radio" id="correct_{{ $studentAttempt->id }}" name="is_correct" value="1" class="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 focus:ring-green-500">
                                                                                 <label for="correct_{{ $studentAttempt->id }}" class="ms-2 text-sm font-medium text-gray-900">Correct</label>
                                                                             </div>
                                                                             <div class="flex items-center">
-                                                                                <input @if($studentAttempt->is_correct === 0) checked @endif type="radio" id="incorrect_{{ $studentAttempt->id }}" name="is_correct" value="0" class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 focus:ring-red-500">
+                                                                                <input @if($studentAttempt->is_correct === false) checked @endif type="radio" id="incorrect_{{ $studentAttempt->id }}" name="is_correct" value="0" class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 focus:ring-red-500">
                                                                                 <label for="incorrect_{{ $studentAttempt->id }}" class="ms-2 text-sm font-medium text-gray-900">Incorrect</label>
                                                                             </div>
                                                                             <button type="submit" class="w-full sm:w-auto sm:ml-auto px-4 py-2 text-xs font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700">Save Grade</button>

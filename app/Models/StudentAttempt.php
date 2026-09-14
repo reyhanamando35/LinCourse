@@ -17,6 +17,11 @@ class StudentAttempt extends Model
         'is_correct',
         'feedback',
     ];
+
+    // MySQL mengembalikan 0/1, PostgreSQL true/false; cast menyamakan keduanya (null = belum dinilai)
+    protected $casts = [
+        'is_correct' => 'boolean',
+    ];
     
     public function studentDetail()
     {

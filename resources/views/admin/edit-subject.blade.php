@@ -55,7 +55,7 @@
                     {{-- Picture --}}
                     <div>
                         <label class="block mb-2 text-sm font-medium text-gray-900">Current Picture</label>
-                        <img src="{{ asset('storage/' . $subject->picture) }}" alt="Current Picture" class="w-48 h-auto rounded-lg border mb-4">
+                        <img src="{{ Storage::disk('public')->url($subject->picture) }}" alt="Current Picture" class="w-48 h-auto rounded-lg border mb-4">
 
                         <label class="block mb-2 text-sm font-medium text-gray-900" for="picture">Upload New Picture (Optional)</label>
                         <input name="picture" accept="image/*" class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50" id="picture" type="file">
