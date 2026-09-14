@@ -22,7 +22,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        
+        // Data demo memakai password 'password'; jangan pernah ada di server produksi
+        if (app()->isProduction()) {
+            $this->command->error('DatabaseSeeder berisi akun demo dan tidak boleh dijalankan di production.');
+            return;
+        }
+
         $this->command->info('Seeding Users...');
         $adminUser = User::create(['name' => 'Fransisco', 'email' => 'admin@gmail.com', 'password' => Hash::make('password')]);
         
@@ -57,6 +62,12 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Art & Design', 'description' => 'Creative drawing, painting, and digital design.', 'picture' => 'images.png', 'price' => 175000.00],
         ];
         foreach($subjectsData as $data) { Subject::create($data); }
+
+        // Tiap guru mengampu subject tertentu (tanpa ini guru tidak bisa mengelola modul apa pun)
+        $allSubjects = Subject::all();
+        foreach (Teacher::all() as $i => $teacher) {
+            $teacher->subjects()->attach($allSubjects->slice($i * 2, 2)->pluck('id'));
+        }
 
         // === 3. DAFTARKAN SISWA KE SUBJECT (ENROLLMENT) ===
         $this->command->info('Seeding Enrollments...');

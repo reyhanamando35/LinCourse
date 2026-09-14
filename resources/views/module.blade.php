@@ -5,7 +5,7 @@
     
         
 
-        <div class="sm:ml-80 flex-1 p-4 md:p-8 overflow-y-auto">
+        <div class="sm:ml-80 flex-1 min-w-0 p-4 md:p-8 overflow-y-auto">
             <div id="content-display">
                 <div id="welcome-content" class="content-block">
                     <h1 class="text-4xl font-bold text-gray-800">Selamat Datang!</h1>
@@ -37,7 +37,7 @@
                                     @endif
                                 </div>
                                 @auth
-                                    @if(Auth::user()->admin || Auth::user()->teacher)
+                                    @if(auth()->user()?->can('manage-subject', $subject->id))
                                         <button type="button" data-practice-id="{{ $practice->id }}" data-modal-target="add-question-modal" data-modal-toggle="add-question-modal" class="add-question-btn text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5 flex-shrink-0">
                                             Add Question
                                         </button>
@@ -49,7 +49,7 @@
                                     <div class="p-6 bg-white rounded-lg shadow-md border border-gray-200">
                                         <div class="flex justify-between items-start mb-3">
                                             <h3 class="font-bold text-xl text-gray-800">Question {{ $loop->iteration }}</h3>
-                                            @if(Auth::check() && (Auth::user()->admin || Auth::user()->teacher))
+                                            @if(auth()->user()?->can('manage-subject', $subject->id))
                                             <div class="flex items-center space-x-2">
                                                 <button type="button" class="edit-question-btn p-1 text-blue-500 hover:text-blue-700" title="Edit Question" data-question-id="{{ $question->id }}" data-question-text="{{ $question->content_text }}"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"></path><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"></path></svg></button>
                                                 <form action="{{ route('questions.destroy', $question) }}" method="POST" onsubmit="return confirm('Delete this question?')">@csrf @method('DELETE')<button type="submit" class="p-1 text-red-500 hover:text-red-700" title="Delete Question"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg></button></form>
@@ -63,7 +63,7 @@
                                             @endphp
                                             @if(in_array($fileExtension, $imageExtensions))
                                                 <div class="mb-4">
-                                                    <img src="{{ asset('storage/' . $question->content_file) }}" alt="Question Image" class="max-w-lg h-auto rounded-lg border">
+                                                    <img src="{{ asset('storage/' . $question->content_file) }}" alt="Question Image" class="w-full max-w-lg h-auto rounded-lg border">
                                                 </div>
                                             @endif
                                         @endif
@@ -107,7 +107,7 @@
                                                     <p class="text-sm font-semibold text-gray-700 mb-2">You submitted this answer on {{ $attempt->updated_at->format('d M Y, H:i') }}.</p>
                                                     <textarea disabled rows="5" class="w-full p-2.5 text-sm text-gray-700 bg-gray-200 rounded-lg border border-gray-300 cursor-not-allowed">{{ $attempt->answer_text }}</textarea>
                                                     @if($attempt->answer_file)
-                                                        <div class="mt-4"><p class="block mb-2 text-sm font-medium text-gray-900">Submitted File:</p><a href="{{ asset('storage/' . $attempt->answer_file) }}" target="_blank" class="inline-flex items-center bg-blue-100 text-blue-800 text-sm font-medium me-2 px-3 py-1.5 rounded-lg border border-blue-400 hover:bg-blue-200"><svg class="w-4 h-4 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20"><path d="M15.5 11.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z"/><path d="M19.293 12.707a1 1 0 0 1 0 1.414l-4 4a1 1 0 0 1-1.414-1.414L16.586 14H5a1 1 0 0 1 0-2h11.586l-2.707-2.707a1 1 0 0 1 1.414-1.414l4 4Z"/></svg>{{ basename($attempt->answer_file) }}</a></div>
+                                                        <div class="mt-4"><p class="block mb-2 text-sm font-medium text-gray-900">Submitted File:</p><a href="{{ asset('storage/' . $attempt->answer_file) }}" target="_blank" class="inline-flex items-center max-w-full break-all bg-blue-100 text-blue-800 text-sm font-medium me-2 px-3 py-1.5 rounded-lg border border-blue-400 hover:bg-blue-200"><svg class="w-4 h-4 me-2 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20"><path d="M15.5 11.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z"/><path d="M19.293 12.707a1 1 0 0 1 0 1.414l-4 4a1 1 0 0 1-1.414-1.414L16.586 14H5a1 1 0 0 1 0-2h11.586l-2.707-2.707a1 1 0 0 1 1.414-1.414l4 4Z"/></svg>{{ basename($attempt->answer_file) }}</a></div>
                                                     @else
                                                         <p class="mt-4 text-sm text-gray-500 italic">No file was submitted with this answer.</p>
                                                     @endif
@@ -151,7 +151,7 @@
                                     {{-- === END Student Answer Area === --}}
 
                                     {{-- Teacher/Admin Area --}}
-                                    @if(Auth::check() && (Auth::user()->admin || Auth::user()->teacher))
+                                    @if(auth()->user()?->can('manage-subject', $subject->id))
                                         <div class="mt-6 space-y-8">
                                             {{-- Form untuk SAVE/UPDATE sekarang punya ID unik --}}
                                             <div class="mt-6 border-t-2 border-dashed pt-4">
@@ -165,7 +165,7 @@
                                                         <label class="block mt-4 mb-2 text-sm font-medium">Attach Key File</label>
                                                         <input type="file" name="key_file" class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none">
                                                         @if($question->answerKey && $question->answerKey->key_file)
-                                                            <p class="mt-1 text-xs text-gray-600">Current file: <a href="{{ asset('storage/' . $question->answerKey->key_file) }}" target="_blank" class="text-blue-600 hover:underline">{{ basename($question->answerKey->key_file) }}</a></p>
+                                                            <p class="mt-1 text-xs text-gray-600">Current file: <a href="{{ asset('storage/' . $question->answerKey->key_file) }}" target="_blank" class="text-blue-600 hover:underline break-all">{{ basename($question->answerKey->key_file) }}</a></p>
                                                         @endif
                                                     </form>
 
@@ -227,7 +227,7 @@
                                                                             <label for="feedback_{{ $studentAttempt->id }}" class="block mb-1 text-sm font-medium text-gray-900">Feedback (Optional)</label>
                                                                             <textarea name="feedback" id="feedback_{{ $studentAttempt->id }}" rows="2" class="block p-2.5 w-full text-sm text-gray-900 bg-white rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500">{{ $studentAttempt->feedback }}</textarea>
                                                                         </div>
-                                                                        <div class="flex items-center gap-4">
+                                                                        <div class="flex flex-wrap items-center gap-x-4 gap-y-3">
                                                                             <label class="text-sm font-medium text-gray-900">Mark as:</label>
                                                                             <div class="flex items-center">
                                                                                 <input @if($studentAttempt->is_correct === 1) checked @endif type="radio" id="correct_{{ $studentAttempt->id }}" name="is_correct" value="1" class="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 focus:ring-green-500">
@@ -237,7 +237,7 @@
                                                                                 <input @if($studentAttempt->is_correct === 0) checked @endif type="radio" id="incorrect_{{ $studentAttempt->id }}" name="is_correct" value="0" class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 focus:ring-red-500">
                                                                                 <label for="incorrect_{{ $studentAttempt->id }}" class="ms-2 text-sm font-medium text-gray-900">Incorrect</label>
                                                                             </div>
-                                                                            <button type="submit" class="ml-auto px-4 py-2 text-xs font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700">Save Grade</button>
+                                                                            <button type="submit" class="w-full sm:w-auto sm:ml-auto px-4 py-2 text-xs font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700">Save Grade</button>
                                                                         </div>
                                                                     </div>
                                                                 </form>

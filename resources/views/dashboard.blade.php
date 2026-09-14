@@ -29,7 +29,7 @@
         <script>
             Swal.fire({
                 title: "Success!",
-                text: "{{ Session::get('success') }}",
+                text: @json(Session::get('success')),
                 icon: "success"
             });
         </script>
@@ -38,7 +38,7 @@
         <script>
             Swal.fire({
                 title: "Ooops!",
-                text: "{{ Session::get('error') }}",
+                text: @json(Session::get('error')),
                 icon: "error"
             });
         </script>
@@ -47,14 +47,14 @@
         <script>
             Swal.fire({
                 title: "Ooops!",
-                text: "{{ $errors->first() }}",
+                text: @json($errors->first()),
                 icon: "error"
             });
         </script>
     @endif
 
     @include('partials.navbar')
-    <div class="px-20 py-10 ">
+    <div class="px-4 sm:px-10 lg:px-20 py-6 sm:py-10">
         
         <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-10">
             <div class="flex items-center mb-4 sm:mb-0">
@@ -82,7 +82,7 @@
                 @endauth
             </div>
         </div>
-        <div class="px-3 sm:px-6 py-10 ">
+        <div class="sm:px-6 py-4 sm:py-10">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
                 @foreach ($subjects as $subject)
                     <a href="{{ route('showSubject', ['id' => $subject->id]) }}" class="group block transform transition-transform duration-300 hover:scale-105">

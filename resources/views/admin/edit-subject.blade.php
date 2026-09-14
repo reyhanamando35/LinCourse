@@ -35,6 +35,23 @@
                         <textarea id="description" name="description" rows="5" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500" required>{{ old('description', $subject->description) }}</textarea>
                     </div>
 
+                    {{-- Assigned Teachers --}}
+                    <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-900">Assigned Teachers</label>
+                        <p class="mb-3 text-xs text-gray-500">Only checked teachers can manage modules, questions, answer keys, and grade answers for this subject.</p>
+                        @php($checkedTeacherIds = array_map('intval', old('teacher_ids', $assignedTeacherIds)))
+                        <div class="space-y-2 max-h-48 overflow-y-auto border border-gray-300 rounded-lg p-3 bg-gray-50">
+                            @forelse($teachers as $teacher)
+                                <label class="flex items-center gap-2 text-sm text-gray-900">
+                                    <input type="checkbox" name="teacher_ids[]" value="{{ $teacher->id }}" class="w-4 h-4 text-blue-600 border-gray-300 rounded" @checked(in_array($teacher->id, $checkedTeacherIds))>
+                                    {{ $teacher->user->name }} <span class="text-gray-500">({{ $teacher->user->email }})</span>
+                                </label>
+                            @empty
+                                <p class="text-sm text-gray-500">No teachers registered yet.</p>
+                            @endforelse
+                        </div>
+                    </div>
+
                     {{-- Picture --}}
                     <div>
                         <label class="block mb-2 text-sm font-medium text-gray-900">Current Picture</label>

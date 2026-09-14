@@ -48,9 +48,9 @@ class AdminController extends Controller
         return view('admin.verify', ['payments' => $payments]);
     }
 
-    public function verifyPayment(Payment $payment)
+    public function verifyPayment(Request $request, Payment $payment)
     {
-        $payment->update(['status' => 'verified']);
+        $payment->update(['status' => 'verified', 'verified_by' => $request->user()->admin->id]);
 
         $payment->studentDetail()->update(['status' => 'active']);
 
@@ -64,6 +64,7 @@ class AdminController extends Controller
         $payment->studentDetail()->delete();
 
         if ($proofPath) {
+            Storage::disk('local')->delete($proofPath);
             Storage::disk('public')->delete($proofPath);
         }
 
@@ -88,7 +89,7 @@ class AdminController extends Controller
                 'max:255',
                 Rule::unique('users')->ignore($user->id), 
             ],
-            'grade' => 'nullable|integer|min:1', 
+            'grade' => 'nullable|integer|min:7|max:12',
             'experience_years' => 'nullable|integer|min:0', 
         ]);
 
@@ -108,8 +109,13 @@ class AdminController extends Controller
         return redirect()->route('admin.role')->with('success', 'User has been updated successfully.');
     }
 
-    public function destroyUser(User $user)
+    public function destroyUser(Request $request, User $user)
     {
+        // Mencegah admin terakhir mengunci dirinya sendiri keluar dari panel admin
+        if ($user->is($request->user())) {
+            return redirect()->route('admin.role')->with('error', 'You cannot delete your own account.');
+        }
+
         $user->delete();
 
         return redirect()->route('admin.role')->with('success', 'User has been deleted successfully.');
@@ -137,7 +143,10 @@ class AdminController extends Controller
 
     public function editSubject(Subject $subject)
     {
-        return view('admin.edit-subject', compact('subject'));
+        $teachers = Teacher::with('user')->get();
+        $assignedTeacherIds = $subject->teachers()->pluck('teachers.id')->all();
+
+        return view('admin.edit-subject', compact('subject', 'teachers', 'assignedTeacherIds'));
     }
 
     public function updateSubject(Request $request, Subject $subject)
@@ -147,7 +156,12 @@ class AdminController extends Controller
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
             'picture' => 'nullable|image|mimes:jpeg,png,jpg,webp,avif|max:2048', // Nullable: gambar tidak wajib diubah
+            'teacher_ids' => 'nullable|array',
+            'teacher_ids.*' => 'integer|exists:teachers,id',
         ]);
+
+        // Guru yang dicentang = guru yang boleh mengelola modul, soal, dan menilai jawaban subject ini
+        $subject->teachers()->sync($request->input('teacher_ids', []));
 
         $path = $subject->picture;
 
@@ -192,7 +206,7 @@ class AdminController extends Controller
             ->get();
 
         $labels = $incomeData->map(function ($item) {
-            return Carbon::createFromFormat('Y-m', $item->month)->format('F Y');
+            return Carbon::createFromFormat('Y-m', $item->month)->format('M Y');
         });
 
         $data = $incomeData->pluck('total');

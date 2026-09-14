@@ -26,7 +26,7 @@
         <script>
             Swal.fire({
                 title: "Success!",
-                text: "{{ Session::get('success') }}",
+                text: @json(Session::get('success')),
                 icon: "success"
             });
         </script>
@@ -35,7 +35,7 @@
         <script>
             Swal.fire({
                 title: "Ooops!",
-                text: "{{ Session::get('error') }}",
+                text: @json(Session::get('error')),
                 icon: "error"
             });
         </script>
@@ -44,7 +44,7 @@
         <script>
             Swal.fire({
                 title: "Ooops!",
-                text: "{{ $errors->first() }}",
+                text: @json($errors->first()),
                 icon: "error"
             });
         </script>

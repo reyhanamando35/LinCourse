@@ -65,6 +65,9 @@ class AuthController extends Controller
             return redirect()->back()->with('error', 'Registrasi failed, please try again.')->withInput();
         }
 
+        // Session ID baru setelah login, mencegah session fixation
+        $request->session()->regenerate();
+
         return redirect()->route('dashboard')->with('success', 'Student registration success!');
     }
 
@@ -127,6 +130,9 @@ class AuthController extends Controller
         } catch (\Throwable $th) {
             return redirect()->back()->with('error', 'Registrasi failed, please try again.')->withInput();
         }
+
+        // Session ID baru setelah login, mencegah session fixation
+        $request->session()->regenerate();
 
         return redirect()->route('dashboard')->with('success', 'Teacher registration success!');
     }

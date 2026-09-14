@@ -21,7 +21,7 @@
                 <div>
                     <label class="block mb-2 text-sm font-medium text-gray-900">Current Pictures</label>
                     <div class="flex flex-wrap gap-4 mb-4">
-                        @foreach($module->pictures as $picture)
+                        @foreach($module->pictures ?? [] as $picture)
                             <img src="{{ asset('storage/' . $picture) }}" class="h-24 w-auto rounded">
                         @endforeach
                     </div>

@@ -6,7 +6,10 @@
 
     <div class="bg-white p-6 rounded-lg shadow-md">
         <p class="text-gray-600 mb-4">Verified monthly income for the last 12 months.</p>
-        <canvas id="incomeChart"></canvas>
+        {{-- Tinggi tetap supaya grafik tidak gepeng di layar HP --}}
+        <div class="relative h-72 sm:h-96">
+            <canvas id="incomeChart"></canvas>
+        </div>
     </div>
 </div>
 @endsection
@@ -16,8 +19,8 @@
 
 <script>
     
-    const labels = {!! json_encode($labels) !!};
-    const data = {!! json_encode($data) !!};
+    const labels = @json($labels);
+    const data = @json($data);
 
     const chartData = {
         labels: labels,
@@ -37,7 +40,11 @@
         data: chartData,
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             scales: {
+                x: {
+                    ticks: { maxRotation: 45, autoSkip: true }
+                },
                 y: {
                     beginAtZero: true,
                     ticks: {

@@ -7,9 +7,10 @@ use App\Models\Student;
 use App\Models\StudentAttempt;
 use App\Models\StudentDetail;
 use App\Models\Subject;
-use Illuminate\Http\Request; 
-use Illuminate\Container\Attributes\Auth;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 
 class DashboardController extends Controller
 {
@@ -90,8 +91,8 @@ class DashboardController extends Controller
         $user = $request->user(); // <-- Ganti Auth::check() dan Auth::user()
 
         if ($user) {
-            // Jika user adalah admin atau guru, mereka selalu punya akses
-            if ($user->admin || $user->teacher) {
+            // Admin, atau guru yang mengampu subject ini, selalu punya akses
+            if (Gate::allows('manage-subject', $subject->id)) {
                 $enrollment = true; // Dianggap sudah terdaftar
                 $paymentStatus = 'verified'; // Dianggap sudah terverifikasi
             } 
@@ -146,8 +147,8 @@ class DashboardController extends Controller
                     'enrollment_date' => now(),
                 ]);
 
-                // 2. Simpan bukti pembayaran
-                $filePath = $request->file('payment_proof')->store('proofs', 'public');
+                // 2. Simpan bukti pembayaran di disk privat (dibuka lewat route paymentProof yang dicek aksesnya)
+                $filePath = $request->file('payment_proof')->store('proofs', 'local');
 
                 // 3. Buat catatan pembayaran pertama
                 Payment::create([
@@ -173,6 +174,12 @@ class DashboardController extends Controller
             'modules.practices.questions.answerKey'
         ])->findOrFail($id);
 
+        // Tanpa ini siswa bisa membuka /module/{id} langsung tanpa mendaftar atau membayar
+        if (Gate::denies('access-subject', $subject->id)) {
+            return redirect()->route('showSubject', $subject->id)
+                ->with('error', 'You need a verified enrollment to access this subject.');
+        }
+
         $studentAttempts = collect();
         $allStudentAttempts = collect(); // Variabel baru untuk admin/guru
 
@@ -185,7 +192,7 @@ class DashboardController extends Controller
                                                     ->get()
                                                     ->keyBy('question_id');
                 }
-            } elseif ($user->admin || $user->teacher) {
+            } elseif (Gate::allows('manage-subject', $subject->id)) {
                 // --- LOGIKA BARU UNTUK GURU/ADMIN ---
                 // 1. Dapatkan semua ID pertanyaan dalam subjek ini
                 $questionIds = $subject->modules->flatMap(function ($module) {
@@ -234,12 +241,17 @@ class DashboardController extends Controller
         }
 
         // 4. Simpan ke Database
-        Subject::create([
+        $subject = Subject::create([
             'name' => $request->name,
             'description' => $request->description,
             'price' => $request->price,
             'picture' => $path,
         ]);
+
+        // Guru pembuat otomatis mengampu subject-nya, supaya bisa langsung mengisi modul
+        if ($user->teacher) {
+            $user->teacher->subjects()->attach($subject->id);
+        }
 
         // 5. Redirect kembali ke dashboard dengan pesan sukses
         return redirect()->route('dashboard')->with('success', 'New subject has been added successfully!');
@@ -255,18 +267,19 @@ class DashboardController extends Controller
 
         $student = $request->user()->student;
 
-        // 2. Simpan file bukti pembayaran
-        $filePath = $request->file('payment_proof')->store('payment_proofs', 'public');
+        // 2. Tentukan ID pendaftaran mana yang akan dibayar, selalu dibatasi ke milik siswa ini
+        //    (tanpa filter ini siswa bisa menimpa bukti bayar tagihan siswa lain lewat ID sembarang)
+        $ownEnrollmentIds = $student->studentDetails()->pluck('id');
+        $enrollmentIdsToUpdate = $request->enrollment_ids === 'all'
+            ? $ownEnrollmentIds->all()
+            : $ownEnrollmentIds->intersect(array_map('intval', explode(',', $request->enrollment_ids)))->all();
 
-        // 3. Tentukan ID pendaftaran mana yang akan dibayar
-        $enrollmentIdsToUpdate = [];
-        if ($request->enrollment_ids === 'all') {
-            // Jika 'Pay All', ambil semua ID pendaftaran milik siswa
-            $enrollmentIdsToUpdate = $student->studentDetails()->pluck('id')->toArray();
-        } else {
-            // Jika 'Pay Now' untuk satu subjek, gunakan ID yang dikirim
-            $enrollmentIdsToUpdate = explode(',', $request->enrollment_ids);
+        if (empty($enrollmentIdsToUpdate)) {
+            return redirect()->route('dashboard')->with('error', 'No bill found to pay.');
         }
+
+        // 3. Simpan file bukti pembayaran di disk privat
+        $filePath = $request->file('payment_proof')->store('payment_proofs', 'local');
 
         // 4. Update semua tagihan 'pending' yang relevan
         Payment::whereIn('student_detail_id', $enrollmentIdsToUpdate)
@@ -278,5 +291,23 @@ class DashboardController extends Controller
             ]);
 
         return redirect()->route('dashboard')->with('success', 'Payment proof submitted! Please wait for admin verification.');
+    }
+
+    /**
+     * Tampilkan bukti pembayaran hanya untuk admin atau siswa pemiliknya.
+     */
+    public function paymentProof(Request $request, Payment $payment)
+    {
+        $user = $request->user();
+        $isOwner = $user->student && $payment->studentDetail?->student_id === $user->student->id;
+        abort_unless($user->admin || $isOwner, 403);
+
+        // Bukti lama tersimpan di disk public sebelum dipindah ke disk privat
+        $disk = collect(['local', 'public'])->first(
+            fn ($disk) => $payment->payment_proof && Storage::disk($disk)->exists($payment->payment_proof)
+        );
+        abort_unless($disk, 404);
+
+        return Storage::disk($disk)->response($payment->payment_proof);
     }
 }
