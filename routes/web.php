@@ -7,6 +7,7 @@ use App\Http\Controllers\ModuleController;
 use App\Http\Controllers\StudentAttemptController;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\AuthMiddleware;
+use App\Http\Middleware\DemoReadOnlyMiddleware;
 use App\Http\Middleware\StudentMiddleware;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -40,7 +41,8 @@ Route::get('/up-db', function () {
     return response('ok');
 })->middleware('throttle:10,1');
 
-Route::middleware([AuthMiddleware::class])->group(function () {
+// DemoReadOnlyMiddleware: akun demo admin (password ditampilkan publik) hanya bisa melihat
+Route::middleware([AuthMiddleware::class, DemoReadOnlyMiddleware::class])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     Route::get('/subject/{id}', [DashboardController::class, 'showSubject'])->name('showSubject');

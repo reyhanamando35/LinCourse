@@ -223,4 +223,50 @@ class SecurityTest extends TestCase
 
         $this->post(route('loginStudent'), ['email' => 'nobody@example.com', 'password' => 'wrong'])->assertStatus(429);
     }
+
+    public function test_demo_admin_is_read_only(): void
+    {
+        $this->withoutVite();
+        $this->artisan('lincourse:demo-admin')->assertSuccessful();
+        $demo = User::where('email', config('app.demo_admin_email'))->firstOrFail();
+        $victim = $this->student();
+        $payment = $this->enroll($this->student(), 'pending');
+
+        // Bisa login dengan kredensial yang ditampilkan di halaman login, dan melihat panel admin
+        $this->post(route('loginStudent'), ['email' => $demo->email, 'password' => 'password123'])->assertRedirect(route('dashboard'));
+        $this->assertAuthenticatedAs($demo);
+        $this->get(route('admin.role'))->assertOk();
+        $this->get(route('loginStudent'))->assertRedirect(); // guest page: sudah login
+
+        // Aksi yang mengubah data diblokir
+        $this->delete(route('admin.users.destroy', $victim))->assertSessionHas('error');
+        $this->post(route('admin.users.makeAdmin', $victim))->assertSessionHas('error');
+        $this->put(route('admin.users.update', $victim), ['name' => 'Hacked', 'email' => 'hacked@example.com'])->assertSessionHas('error');
+        $this->delete(route('admin.subjects.destroy', $this->subject))->assertSessionHas('error');
+        $this->delete(route('modules.destroy', $this->module))->assertSessionHas('error');
+        $this->put(route('admin.payments.reject', $payment))->assertSessionHas('error');
+
+        $this->assertModelExists($victim);
+        $this->assertNull($victim->fresh()->admin);
+        $this->assertModelExists($this->subject);
+        $this->assertModelExists($this->module);
+
+        // Verifikasi pembayaran tetap boleh dicoba
+        $this->put(route('admin.payments.verify', $payment))->assertSessionHas('success');
+        $this->assertSame('verified', $payment->fresh()->status);
+
+        $this->post(route('logout'))->assertRedirect(route('index'));
+        $this->assertGuest();
+    }
+
+    public function test_login_pages_show_demo_admin_credentials(): void
+    {
+        $this->withoutVite();
+
+        foreach (['loginStudent', 'loginTeacher'] as $page) {
+            $this->get(route($page))->assertOk()
+                ->assertSee(config('app.demo_admin_email'))
+                ->assertSee('password123');
+        }
+    }
 }

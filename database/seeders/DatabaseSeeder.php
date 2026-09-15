@@ -51,6 +51,7 @@ class DatabaseSeeder extends Seeder
         foreach($studentsData as $data) { Student::create(['user_id' => User::create($data)->id, 'grade' => rand(10, 12)]); }
         
         Admin::create(['user_id' => $adminUser->id]);
+        $this->command->call('lincourse:demo-admin');
 
         // === 2. BUAT SUBJECTS ===
         $this->command->info('Seeding Subjects...');

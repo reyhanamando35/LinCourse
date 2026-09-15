@@ -60,4 +60,9 @@ class User extends Authenticatable
     {
         return $this->hasOne(Admin::class);
     }
+
+    public function isDemoAdmin(): bool
+    {
+        return $this->email === config('app.demo_admin_email');
+    }
 }

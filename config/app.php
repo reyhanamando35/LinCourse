@@ -15,6 +15,9 @@ return [
 
     'name' => env('APP_NAME', 'Laravel'),
 
+    // Akun admin publik untuk pengunjung portofolio: bisa melihat semua, aksi merusak diblokir (DemoReadOnlyMiddleware)
+    'demo_admin_email' => env('DEMO_ADMIN_EMAIL', 'demo-admin@lincourse.app'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment
